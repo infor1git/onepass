@@ -28,13 +28,14 @@ function plugin_onepass_install() {
         $DB->queryOrDie($query, "Erro ao criar tabela glpi_plugin_onepass_passwords");
     }
 
-    // 2. Tabela de Auditoria (existente)
+    // 2. Tabela de Auditoria (existente, mas com o campo novo)
     if (!$DB->tableExists('glpi_plugin_onepass_audits')) {
         $query = "CREATE TABLE `glpi_plugin_onepass_audits` (
             `id` bigint(20) NOT NULL AUTO_INCREMENT,
             `plugin_onepass_passwords_id` int(11) NOT NULL,
             `users_id` int(11) NOT NULL,
             `action` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+            `two_fa_email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
             `ip_address` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
             `user_agent` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
             `date_creation` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -44,7 +45,7 @@ function plugin_onepass_install() {
         $DB->queryOrDie($query, "Erro ao criar tabela de auditoria");
     }
 
-    // 3. NOVA TABELA: Dicionário de Tipos
+    // 3. Tabela Dicionário de Tipos
     if (!$DB->tableExists('glpi_plugin_onepass_types')) {
         $query = "CREATE TABLE `glpi_plugin_onepass_types` (
             `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -56,12 +57,17 @@ function plugin_onepass_install() {
         $DB->queryOrDie($query, "Erro ao criar tabela de tipos");
     }
 
-    // 4. ATUALIZAÇÃO DA TABELA PRINCIPAL: Adiciona Tipo e Comentário
+    // 4. ATUALIZAÇÕES (Migrations)
     if (!$DB->fieldExists('glpi_plugin_onepass_passwords', 'plugin_onepass_types_id')) {
         $migration->addField('glpi_plugin_onepass_passwords', 'plugin_onepass_types_id', 'int(11) NOT NULL DEFAULT 0');
     }
     if (!$DB->fieldExists('glpi_plugin_onepass_passwords', 'comment')) {
         $migration->addField('glpi_plugin_onepass_passwords', 'comment', 'text COLLATE utf8mb4_unicode_ci');
+    }
+    
+    // NOVA COLUNA 2FA na Auditoria
+    if (!$DB->fieldExists('glpi_plugin_onepass_audits', 'two_fa_email')) {
+        $migration->addField('glpi_plugin_onepass_audits', 'two_fa_email', 'varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL AFTER action');
     }
 
     $migration->executeMigration();

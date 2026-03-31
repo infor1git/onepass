@@ -5,7 +5,7 @@
  * @license Comercial
  */
 
-define('PLUGIN_ONEPASS_VERSION', '1.0.6');
+define('PLUGIN_ONEPASS_VERSION', '1.0.7');
 
 // Inicialização do Plugin no ecosistema GLPI
 function plugin_init_onepass() {
@@ -24,6 +24,11 @@ function plugin_init_onepass() {
     // Injeta a aba do OnePass na configuração de Perfis do GLPI
     Plugin::registerClass('PluginOnepassProfile', [
         'addtabon' => 'Profile'
+    ]);
+
+    // Injeta a aba de Auditoria DENTRO do formulário do OnePass
+    Plugin::registerClass('PluginOnepassAudit', [
+        'addtabon' => ['PluginOnepassPassword']
     ]);
 
     // Hook para adicionar folha de estilo customizada (ex: para o Security Indicator)
